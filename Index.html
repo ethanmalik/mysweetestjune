@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>June's Floral Adventure</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Comic Sans MS', cursive;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #ffd6e7, #c1f2b0);
+            height: 100vh;
+            overflow: hidden;
+            text-align: center;
+            color: #5a3d5a;
+            transition: all 0.5s;
+        }
+
+        /* Phase Container */
+        .phase {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        /* Game 1: Catch Flowers */
+        #game1-screen {
+            width: 400px;
+            height: 500px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 25px rgba(214, 112, 214, 0.3);
+        }
+
+        #basket {
+            width: 80px;
+            height: 60px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 60"><path d="M10,50 Q50,0 90,50 L80,60 Q50,20 20,60 Z" fill="%23d4a5a5"/></svg>');
+            position: absolute;
+            bottom: 10px;
+            left: 160px;
+            cursor: pointer;
+        }
+
+        .falling-flower {
+            position: absolute;
+            font-size: 24px;
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(550px) rotate(360deg); }
+        }
+
+        /* Game 2: Match Flowers */
+        #game2-screen {
+            width: 400px;
+            height: 500px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 20px;
+            padding: 20px;
+            box-sizing: border-box;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-gap: 10px;
+        }
+
+        .card {
+            height: 80px;
+            background: #ffb6c1;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: all 0.5s;
+        }
+
+        .card.flipped {
+            background: white;
+            transform: rotateY(180deg);
+        }
+
+        /* Proposal Phase */
+        .fairy-garden {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 0 25px rgba(214, 112, 214, 0.3);
+            max-width: 500px;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        h1 {
+            color: #ff66b3;
+            font-size: 2.2rem;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        button {
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-family: inherit;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .proceed-btn {
+            background-color: #a8e6cf;
+            color: #5a3d5a;
+            margin-top: 20px;
+        }
+
+        #yes {
+            background-color: #ff66b3;
+            color: white;
+        }
+
+        #no {
+            background-color: #a8e6cf;
+            color: #5a3d5a;
+            position: relative;
+        }
+
+        button:hover {
+            transform: scale(1.1);
+        }
+
+        /* Score & Messages */
+        .score-display {
+            margin-top: 20px;
+            font-size: 1.5rem;
+            color: #ff66b3;
+        }
+
+        #response {
+            margin-top: 20px;
+            font-size: 1.5rem;
+            color: #ff66b3;
+            font-weight: bold;
+        }
+
+        /* Background Elements */
+        .bg-flower {
+            position: absolute;
+            font-size: 30px;
+            opacity: 0.3;
+            z-index: -1;
+        }
+
+        /* Hidden Elements */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <audio id="bg-music" loop>
+        <source src="https://audio.jukehost.co.uk/06b6XSHi2jdGb14QI3faC8QAHOOfa65c" type="audio/mpeg">
+    </audio>
+
+     <!-- Phase 0: Start Screen -->
+        <div id="start-screen" class="phase" style="display: flex;">
+        <div>
+            <h1>Welcome to June's Floral Adventure 🌸</h1>
+            <button onclick="startGame()" class="proceed-btn">Start Game</button>
+        </div>
+        </div>
+
+
+    <!-- Phase 1: Catch Flowers Game -->
+    <div id="phase1" class="phase">
+        <h1>Help me catch 10 flowers, June</h1>
+        <div id="game1-screen">
+            <div id="basket"></div>
+        </div>
+        <div id="score1" class="score-display">Score: 0</div>
+        <button id="proceed1" class="proceed-btn hidden">Continue to Next Game, wont you? →</button>
+    </div>
+
+    <!-- Phase 2: Flower Matching Game -->
+    <div id="phase2" class="phase">
+        <h1>🌼 Match the Flower Pairs! 🌼</h1>
+        <div id="game2-screen"></div>
+        <div id="score2" class="score-display">Matches: 0/6</div>
+        <button id="proceed2" class="proceed-btn hidden">See something more →</button>
+    </div>
+
+    <!-- Phase 3: Romantic Proposal -->
+    <div id="phase3" class="phase">
+        <div class="fairy-garden">
+            <h1>✨ Will you be mine, June? ✨</h1>
+            <div id="question">
+                <p>June, I know you say you're loud, clingy, flirty, and maybe a little asbun but to me, you’re just effortlessly lovable. Even when you're quiet and tired from thesis, you still make my day better just by being around. You’re that kind of chaos I’d gladly get lost in, and honestly, I don’t want to keep pretending this is just a cute friendship. So here it is,I like you, more than a little, more than just as a friend. I want to be the person who makes you laugh when you're low on energy, who listens to all your random rants, and who stays even when the noise fades.</p>
+                <div class="buttons">
+                    <button id="yes">Yes!</button>
+                    <button id="no">Maybe?</button>
+                </div>
+            </div>
+            <div id="response" class="hidden">
+                <p>✨ Ethan's happiness ✨<br>June says "YES!"</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== GAME 1: CATCH FLOWERS ==========
+        let score1 = 0;
+        const flowerTypes = ['🌸', '🌼', '🌺', '🌹', '🌻', '🌷'];
+        const game1Screen = document.getElementById('game1-screen');
+        const basket = document.getElementById('basket');
+        const score1Display = document.getElementById('score1');
+        const proceed1Btn = document.getElementById('proceed1');
+        
+        // Basket movement
+        game1Screen.addEventListener('mousemove', (e) => {
+            const rect = game1Screen.getBoundingClientRect();
+            const x = e.clientX - rect.left - 40;
+            if (x > 0 && x < 320) {
+                basket.style.left = `${x}px`;
+            }
+        });
+
+        // Create falling flowers
+        function createFallingFlower() {
+            const flower = document.createElement('div');
+            flower.className = 'falling-flower';
+            flower.innerHTML = flowerTypes[Math.floor(Math.random() * flowerTypes.length)];
+            
+            const startX = Math.random() * 360;
+            const duration = Math.random() * 3 + 2;
+            
+            flower.style.left = `${startX}px`;
+            flower.style.animationDuration = `${duration}s`;
+            
+            flower.addEventListener('animationend', () => {
+                flower.remove();
+            });
+            
+            // Check if caught
+            const checkCollision = setInterval(() => {
+                const flowerRect = flower.getBoundingClientRect();
+                const basketRect = basket.getBoundingClientRect();
+                
+                if (flowerRect.bottom >= basketRect.top && 
+                    flowerRect.right >= basketRect.left && 
+                    flowerRect.left <= basketRect.right) {
+                    score1++;
+                    score1Display.textContent = `Score: ${score1}`;
+                    flower.remove();
+                    clearInterval(checkCollision);
+                    
+                    if (score1 === 10) {
+                        proceed1Btn.classList.remove('hidden');
+                    }
+                }
+            }, 50);
+            
+            game1Screen.appendChild(flower);
+        }
+
+        // ========== GAME 2: FLOWER MATCHING ==========
+        let score2 = 0;
+        let flippedCards = [];
+        let matchedPairs = 0;
+        const game2Screen = document.getElementById('game2-screen');
+        const score2Display = document.getElementById('score2');
+        const proceed2Btn = document.getElementById('proceed2');
+        
+        // Create matching game
+        function setupMatchingGame() {
+            const flowers = ['🌸', '🌼', '🌺', '🌹', '🌻', '🌷'];
+            const cards = [...flowers, ...flowers]; // Duplicate for pairs
+            
+            // Shuffle cards
+            cards.sort(() => Math.random() - 0.5);
+            
+            // Create card elements
+            game2Screen.innerHTML = '';
+            cards.forEach((flower, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.index = index;
+                card.dataset.flower = flower;
+                card.addEventListener('click', flipCard);
+                game2Screen.appendChild(card);
+            });
+        }
+        
+        // Card flipping logic
+        function flipCard() {
+            if (flippedCards.length < 2 && !this.classList.contains('flipped')) {
+                this.classList.add('flipped');
+                this.textContent = this.dataset.flower;
+                flippedCards.push(this);
+                
+                if (flippedCards.length === 2) {
+                    checkForMatch();
+                }
+            }
+        }
+        
+        // Check for matches
+        function checkForMatch() {
+            const [card1, card2] = flippedCards;
+            
+            if (card1.dataset.flower === card2.dataset.flower) {
+                // Match found
+                matchedPairs++;
+                score2Display.textContent = `Matches: ${matchedPairs}/6`;
+                flippedCards = [];
+                
+                if (matchedPairs === 6) {
+                    proceed2Btn.classList.remove('hidden');
+                }
+            } else {
+                // No match
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    card1.textContent = '';
+                    card2.textContent = '';
+                    flippedCards = [];
+                }, 1000);
+            }
+        }
+
+        // ========== PROPOSAL INTERACTIONS ==========
+        document.getElementById('yes').addEventListener('click', function() {
+            document.getElementById('question').classList.add('hidden');
+            document.getElementById('response').classList.remove('hidden');
+            
+            // Celebration effect
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const heart = document.createElement('div');
+                    heart.innerHTML = '🌸';
+                    heart.style.position = 'fixed';
+                    heart.style.left = `${Math.random() * 100}vw`;
+                    heart.style.top = `${Math.random() * 100}vh`;
+                    heart.style.fontSize = `${Math.random() * 30 + 20}px`;
+                    heart.style.animation = `float ${Math.random() * 3 + 2}s ease-in-out infinite`;
+                    document.body.appendChild(heart);
+                }, i * 100);
+            }
+        });
+
+        document.getElementById('no').addEventListener('mouseover', function() {
+            const button = this;
+            const containerRect = document.querySelector('.fairy-garden').getBoundingClientRect();
+            const maxX = containerRect.width - button.offsetWidth;
+            const maxY = containerRect.height - button.offsetHeight;
+            
+            button.style.position = 'absolute';
+            button.style.left = Math.random() * maxX + 'px';
+            button.style.top = Math.random() * maxY + 'px';
+        });
+
+        // ========== PHASE MANAGEMENT ==========
+        function startPhase(phaseNumber) {
+            document.querySelectorAll('.phase').forEach(phase => {
+                phase.style.display = 'none';
+            });
+            
+            const phase = document.getElementById(`phase${phaseNumber}`);
+            phase.style.display = 'flex';
+            
+            if (phaseNumber === 1) {
+                // Start flower catching game
+                setInterval(createFallingFlower, 800);
+            } else if (phaseNumber === 2) {
+                // Start matching game
+                setupMatchingGame();
+            }
+        }
+
+        // Proceed buttons
+        proceed1Btn.addEventListener('click', () => startPhase(2));
+        proceed2Btn.addEventListener('click', () => startPhase(3));
+
+
+        
+        // Create background flowers
+        for (let i = 0; i < 20; i++) {
+            const flower = document.createElement('div');
+            flower.className = 'bg-flower';
+            flower.innerHTML = flowerTypes[Math.floor(Math.random() * flowerTypes.length)];
+            flower.style.left = `${Math.random() * 100}vw`;
+            flower.style.top = `${Math.random() * 100}vh`;
+            document.body.appendChild(flower);
+        }
+
+            // New: Start Game after user interaction
+    function startGame() {
+        const music = document.getElementById('bg-music');
+        music.play().then(() => {
+            document.getElementById('start-screen').style.display = 'none';
+            startPhase(1);
+        }).catch((e) => {
+            alert("Click required to play music!");
+        });
+}
+
+    </script>
+</body>
+</html>
